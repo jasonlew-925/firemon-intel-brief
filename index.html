@@ -677,7 +677,7 @@
           <div class="field">
             <label for="companyUrl">Company Website <span style="color:#E53E3E">*</span></label>
             <input type="url" id="companyUrl" name="company_url" placeholder="https://www.acme.com" autocomplete="url" required>
-            <span class="field-error" id="companyUrlError">Required</span>
+            <span class="field-error" id="companyUrlError">Enter a valid website URL</span>
           </div>
         </div>
 
@@ -785,7 +785,18 @@
       let valid = true;
       if (!firstName) { showFieldError("firstNameError", true); valid = false; } else { showFieldError("firstNameError", false); }
       if (!lastName)  { showFieldError("lastNameError",  true); valid = false; } else { showFieldError("lastNameError",  false); }
-      if (!companyUrl){ showFieldError("companyUrlError", true); valid = false; } else { showFieldError("companyUrlError", false); }
+      // URL validation: must be non-empty and a valid http/https URL
+      const urlPattern = /^https?:\/\/[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+/;
+      const companyUrlEl = document.getElementById("companyUrlError");
+      if (!companyUrl) {
+        companyUrlEl.textContent = "Company website is required";
+        showFieldError("companyUrlError", true); valid = false;
+      } else if (!urlPattern.test(companyUrl)) {
+        companyUrlEl.textContent = "Must be a valid URL — e.g. https://www.acme.com";
+        showFieldError("companyUrlError", true); valid = false;
+      } else {
+        showFieldError("companyUrlError", false);
+      }
       if (!valid) return;
 
       currentFormData = { first_name: firstName, last_name: lastName, company_url: companyUrl, title, state };
