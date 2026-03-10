@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Intelligence Brief — FireMon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ===== DESIGN TOKENS ===== */
+    :root {
+      --primary:    #250E62;
+      --secondary:  #D74100;
+      --accent:     #FFC72C;
+      --bg-left:    #F3F1F9;
+      --bg-right:   #FFFFFF;
+      --border:     #DDD9EE;
+      --text:       #1A1A1A;
+      --muted:      #6B6B8A;
+      --muted-bg:   #F8F7FB;
+      --radius:     8px;
+      --font-head:  'Open Sans', Arial, sans-serif;
+      --font-body:  'Roboto', Arial, sans-serif;
+    }
+
+    /* ===== RESET ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--text);
+      background: var(--bg-right);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== HEADER ===== */
+    .app-header {
+      background: var(--primary);
+      padding: 0 32px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      background: var(--secondary);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 16px;
+      color: white;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-name {
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 18px;
+      color: white;
+      letter-spacing: 0.02em;
+    }
+
+    .header-title {
+      font-family: var(--font-head);
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.65);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ===== MAIN SPLIT LAYOUT ===== */
+    .app-body {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* ===== LEFT PANEL — FORM ===== */
+    .panel-left {
+      width: 38%;
+      min-width: 300px;
+      background: var(--bg-left);
+      border-right: 1px solid var(--border);
+      padding: 36px 32px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .form-eyebrow {
+      font-family: var(--font-head);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--secondary);
+      margin-bottom: 6px;
+    }
+
+    .form-heading {
+      font-family: var(--font-head);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 4px;
+      line-height: 1.25;
+    }
+
+    .form-subtext {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    .form-divider {
+      height: 2px;
+      background: linear-gradient(to right, var(--secondary), transparent);
+      margin-bottom: 28px;
+      border-radius: 2px;
+    }
+
+    .field-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .field-group.single {
+      flex-direction: column;
+    }
+
+    .field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--primary);
+    }
+
+    label .optional {
+      font-weight: 400;
+      color: var(--muted);
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 11px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--text);
+      background: white;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 14, 98, 0.1);
+    }
+
+    input[type="text"]::placeholder {
+      color: #bbb;
+    }
+
+    input.error {
+      border-color: #E53E3E;
+    }
+
+    .field-error {
+      font-size: 11px;
+      color: #E53E3E;
+      display: none;
+    }
+
+    .btn-generate {
+      margin-top: 8px;
+      width: 100%;
+      padding: 13px 24px;
+      background: var(--secondary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font-head);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-generate:hover:not(:disabled) {
+      background: var(--primary);
+    }
+
+    .btn-generate:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .btn-generate:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .form-note {
+      margin-top: 16px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ===== RIGHT PANEL ===== */
+    .panel-right {
+      flex: 1;
+      background: var(--bg-right);
+      overflow-y: auto;
+      position: relative;
+    }
+
+    /* ===== STATE: IDLE ===== */
+    .state-idle {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 48px;
+      text-align: center;
+    }
+
+    .idle-logo-mark {
+      width: 56px;
+      height: 56px;
+      background: var(--primary);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 24px;
+      color: white;
+      margin-bottom: 4px;
+    }
+
+    .idle-title {
+      font-family: var(--font-head);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .idle-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 340px;
+      line-height: 1.6;
+    }
+
+    .idle-tag {
+      background: var(--muted-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    /* ===== STATE: LOADING ===== */
+    .state-loading {
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 48px;
+      text-align: center;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-family: var(--font-head);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .loading-sub {
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 320px;
+      line-height: 1.6;
+    }
+
+    .loading-timer {
+      font-size: 13px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      font-family: var(--font-body);
+    }
+
+    .loading-steps {
+      list-style: none;
+      text-align: left;
+      margin-top: 4px;
+    }
+
+    .loading-steps li {
+      font-size: 12px;
+      color: var(--muted);
+      padding: 3px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .loading-steps li::before {
+      content: "○";
+      position: absolute;
+      left: 0;
+      color: var(--border);
+      font-size: 10px;
+    }
+
+    .loading-steps li.active::before {
+      content: "◉";
+      color: var(--secondary);
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    .loading-steps li.done::before {
+      content: "●";
+      color: var(--primary);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ===== STATE: RESULT ===== */
+    .state-result {
+      display: none;
+      padding: 32px 36px;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .result-topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .result-meta h2 {
+      font-family: var(--font-head);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .result-meta p {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .data-quality-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-left: 8px;
+    }
+
+    .quality-high { background: #D4EDDA; color: #1A5C2A; }
+    .quality-medium { background: #FFF3CD; color: #856404; }
+    .quality-low { background: #F8D7DA; color: #721C24; }
+
+    .btn-pdf {
+      padding: 10px 20px;
+      background: white;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      border-radius: var(--radius);
+      font-family: var(--font-head);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .btn-pdf:hover:not(:disabled) {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-pdf:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .brief-sections {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ===== BRIEF SECTION CARDS ===== */
+    .section-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .section-card-header {
+      border-left: 4px solid var(--secondary);
+      padding: 12px 16px;
+      background: var(--muted-bg);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-card-header h3 {
+      font-family: var(--font-head);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .section-icon {
+      font-size: 14px;
+    }
+
+    .section-card-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* ===== FIELD ROWS ===== */
+    .field-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .field-label {
+      font-weight: 600;
+      color: var(--primary);
+      min-width: 140px;
+      flex-shrink: 0;
+      font-size: 12px;
+    }
+
+    .field-value {
+      color: var(--text);
+      flex: 1;
+    }
+
+    .field-value.na {
+      color: var(--muted);
+      font-style: italic;
+      font-size: 12px;
+    }
+
+    /* ===== LISTS ===== */
+    .brief-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .brief-list li {
+      font-size: 13px;
+      color: var(--text);
+      padding: 4px 0 4px 16px;
+      position: relative;
+      border-bottom: 1px solid #F5F4FA;
+    }
+
+    .brief-list li:last-child { border-bottom: none; }
+
+    .brief-list li::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: var(--secondary);
+      font-size: 11px;
+    }
+
+    .brief-list li.na::before { content: "–"; color: var(--muted); }
+    .brief-list li.na { color: var(--muted); font-style: italic; font-size: 12px; }
+
+    /* ===== CHIPS ===== */
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .chip {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .chip-primary { background: #EBE7F5; color: var(--primary); }
+    .chip-danger  { background: #FDE8E2; color: #A52A00; }
+    .chip-neutral { background: var(--muted-bg); color: var(--muted); }
+    .chip-accent  { background: #FFF5D7; color: #7A5A00; }
+
+    /* ===== SALES SUMMARY ===== */
+    .summary-block {
+      padding: 20px;
+      border-left: 4px solid var(--secondary);
+      background: #FFFBF8;
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+
+    .summary-block p {
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .summary-block p:last-child { margin-bottom: 0; }
+
+    /* ===== NOTE FIELD ===== */
+    .section-note {
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+      padding-top: 6px;
+      border-top: 1px dashed var(--border);
+      margin-top: 4px;
+    }
+
+    /* ===== ERROR STATE ===== */
+    .state-error {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 48px;
+      text-align: center;
+      gap: 16px;
+    }
+
+    .error-icon { font-size: 40px; }
+    .error-title { font-family: var(--font-head); font-size: 18px; font-weight: 700; color: #C53030; }
+    .error-msg { font-size: 13px; color: var(--muted); max-width: 360px; line-height: 1.6; }
+    .btn-retry {
+      padding: 10px 24px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .app-body { flex-direction: column; }
+      .panel-left { width: 100%; min-width: unset; border-right: none; border-bottom: 1px solid var(--border); padding: 24px 20px; }
+      .panel-right { min-height: 60vh; }
+      .header-title { display: none; }
+      .result-topbar { flex-direction: column; }
+      .btn-pdf { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <a class="header-logo" href="#">
+      <div class="logo-mark">F</div>
+      <span class="logo-name">FireMon</span>
+    </a>
+    <span class="header-title">Account Intelligence Brief</span>
+  </header>
+
+  <!-- MAIN BODY -->
+  <div class="app-body">
+
+    <!-- LEFT: FORM PANEL -->
+    <aside class="panel-left">
+      <div class="form-eyebrow">Pre-Demo Intelligence</div>
+      <h1 class="form-heading">Prospect Details</h1>
+      <p class="form-subtext">Enter a prospect's information to generate a verified intelligence brief before your demo.</p>
+      <div class="form-divider"></div>
+
+      <form id="briefForm" novalidate>
+
+        <div class="field-group">
+          <div class="field">
+            <label for="firstName">First Name <span style="color:#E53E3E">*</span></label>
+            <input type="text" id="firstName" name="first_name" placeholder="Jane" autocomplete="given-name" required>
+            <span class="field-error" id="firstNameError">Required</span>
+          </div>
+          <div class="field">
+            <label for="lastName">Last Name <span style="color:#E53E3E">*</span></label>
+            <input type="text" id="lastName" name="last_name" placeholder="Smith" autocomplete="family-name" required>
+            <span class="field-error" id="lastNameError">Required</span>
+          </div>
+        </div>
+
+        <div class="field-group single">
+          <div class="field">
+            <label for="company">Company <span style="color:#E53E3E">*</span></label>
+            <input type="text" id="company" name="company" placeholder="Acme Corporation" autocomplete="organization" required>
+            <span class="field-error" id="companyError">Required</span>
+          </div>
+        </div>
+
+        <div class="field-group single">
+          <div class="field">
+            <label for="title">Job Title <span class="optional">(optional)</span></label>
+            <input type="text" id="title" name="title" placeholder="Director of Network Security" autocomplete="organization-title">
+          </div>
+        </div>
+
+        <div class="field-group single">
+          <div class="field">
+            <label for="state">State <span class="optional">(optional)</span></label>
+            <input type="text" id="state" name="state" placeholder="TX">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-generate" id="submitBtn">
+          Generate Intelligence Brief
+        </button>
+
+      </form>
+
+      <p class="form-note">
+        Research pulls from public web sources only. All fields marked N/A could not be verified. Expected generation time: 45–90 seconds.
+      </p>
+    </aside>
+
+    <!-- RIGHT: OUTPUT PANEL -->
+    <main class="panel-right" id="outputPanel">
+
+      <!-- IDLE STATE -->
+      <div class="state-idle" id="stateIdle">
+        <div class="idle-logo-mark">F</div>
+        <div class="idle-title">Ready to Research</div>
+        <p class="idle-subtitle">
+          Enter prospect details on the left to generate a verified Account Intelligence Brief — powered by FireMon's AI research engine.
+        </p>
+        <div class="idle-tag">Verified · Accurate · Instant</div>
+      </div>
+
+      <!-- LOADING STATE -->
+      <div class="state-loading" id="stateLoading">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingTitle">Researching prospect…</div>
+        <p class="loading-sub">Gathering data from public sources and synthesizing your brief. This takes 45–90 seconds.</p>
+        <div class="loading-timer" id="loadingTimer">0:00</div>
+        <ul class="loading-steps">
+          <li id="step1">Searching company news &amp; press releases</li>
+          <li id="step2">Scraping company website</li>
+          <li id="step3">Scanning job postings for signals</li>
+          <li id="step4">Searching prospect credentials</li>
+          <li id="step5">Analyzing technology signals</li>
+          <li id="step6">Synthesizing brief with AI</li>
+        </ul>
+      </div>
+
+      <!-- ERROR STATE -->
+      <div class="state-error" id="stateError">
+        <div class="error-icon">⚠</div>
+        <div class="error-title">Research Failed</div>
+        <p class="error-msg" id="errorMsg">Something went wrong while generating the brief. Please try again.</p>
+        <button class="btn-retry" onclick="resetForm()">Try Again</button>
+      </div>
+
+      <!-- RESULT STATE -->
+      <div class="state-result" id="stateResult">
+        <div class="result-topbar">
+          <div class="result-meta">
+            <h2 id="resultName">Intelligence Brief</h2>
+            <p id="resultMeta"></p>
+          </div>
+          <button class="btn-pdf" id="btnPdf" onclick="downloadPDF()">↓ Download PDF</button>
+        </div>
+        <div class="brief-sections" id="briefSections"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // ==========================================
+    //  CONFIGURATION — Update with your n8n URLs
+    // ==========================================
+    const N8N_WEBHOOK_URL = "https://firemon.app.n8n.cloud/webhook/brief/generate";
+    const N8N_PDF_URL     = "https://firemon.app.n8n.cloud/webhook/brief/pdf";
+    const TIMEOUT_MS      = 120000; // 2 minutes
+
+    // ==========================================
+    //  FORM SUBMIT
+    // ==========================================
+    let currentFormData = null;
+    let timerInterval   = null;
+
+    document.getElementById("briefForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const firstName = document.getElementById("firstName").value.trim();
+      const lastName  = document.getElementById("lastName").value.trim();
+      const company   = document.getElementById("company").value.trim();
+      const title     = document.getElementById("title").value.trim();
+      const state     = document.getElementById("state").value.trim();
+
+      // Client-side validation
+      let valid = true;
+      if (!firstName) { showFieldError("firstNameError", true); valid = false; } else { showFieldError("firstNameError", false); }
+      if (!lastName)  { showFieldError("lastNameError",  true); valid = false; } else { showFieldError("lastNameError",  false); }
+      if (!company)   { showFieldError("companyError",   true); valid = false; } else { showFieldError("companyError",   false); }
+      if (!valid) return;
+
+      currentFormData = { first_name: firstName, last_name: lastName, company, title, state };
+
+      setLoadingState(firstName, lastName, company);
+
+      const controller = new AbortController();
+      const timeoutId  = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+      try {
+        const resp = await fetch(N8N_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(currentFormData),
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          showError(err.message || `Server error (${resp.status}). Please try again.`);
+          return;
+        }
+
+        const data = await resp.json();
+
+        if (data.status === "error") {
+          showError(data.message || "Research failed. Please try again.");
+          return;
+        }
+
+        showResult(data);
+
+      } catch (err) {
+        clearTimeout(timeoutId);
+        if (err.name === "AbortError") {
+          showError("Request timed out after 2 minutes. The research is still running — please try again in a moment.");
+        } else {
+          showError("Network error. Check your connection and try again.");
+        }
+      }
+    });
+
+    // ==========================================
+    //  STATE TRANSITIONS
+    // ==========================================
+    function setLoadingState(firstName, lastName, company) {
+      hideAllStates();
+      document.getElementById("stateLoading").style.display = "flex";
+      document.getElementById("loadingTitle").textContent = `Researching ${firstName} ${lastName} at ${company}…`;
+      document.getElementById("submitBtn").disabled = true;
+
+      // Animated step progression
+      const steps = ["step1","step2","step3","step4","step5","step6"];
+      const delays = [0, 8000, 18000, 28000, 40000, 52000];
+      steps.forEach((id, i) => {
+        setTimeout(() => {
+          if (i > 0) document.getElementById(steps[i-1]).classList.remove("active");
+          if (i > 0) document.getElementById(steps[i-1]).classList.add("done");
+          document.getElementById(id).classList.add("active");
+        }, delays[i]);
+      });
+
+      // Elapsed timer
+      const startTime = Date.now();
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const m = Math.floor(elapsed / 60);
+        const s = String(elapsed % 60).padStart(2, "0");
+        document.getElementById("loadingTimer").textContent = `${m}:${s}`;
+      }, 500);
+    }
+
+    function showResult(data) {
+      clearInterval(timerInterval);
+      hideAllStates();
+      const el = document.getElementById("stateResult");
+      el.style.display = "flex";
+      document.getElementById("submitBtn").disabled = false;
+
+      const name = data.prospect_name || (currentFormData ? `${currentFormData.first_name} ${currentFormData.last_name}` : "");
+      const company = data.company || currentFormData?.company || "";
+
+      document.getElementById("resultName").textContent = name;
+
+      const qBadge = data.data_quality
+        ? `<span class="data-quality-badge quality-${data.data_quality}">${data.data_quality} data quality</span>`
+        : "";
+      document.getElementById("resultMeta").innerHTML = `${company}${qBadge}`;
+
+      renderBrief(data);
+    }
+
+    function showError(msg) {
+      clearInterval(timerInterval);
+      hideAllStates();
+      document.getElementById("stateError").style.display = "flex";
+      document.getElementById("errorMsg").textContent = msg;
+      document.getElementById("submitBtn").disabled = false;
+    }
+
+    function hideAllStates() {
+      ["stateIdle","stateLoading","stateError","stateResult"].forEach(id => {
+        const el = document.getElementById(id);
+        if (id === "stateResult") el.style.display = "none";
+        else el.style.display = "none";
+      });
+      // Reset loading steps
+      ["step1","step2","step3","step4","step5","step6"].forEach(id => {
+        document.getElementById(id).className = "";
+      });
+    }
+
+    function resetForm() {
+      hideAllStates();
+      document.getElementById("stateIdle").style.display = "flex";
+      document.getElementById("stateIdle").style.flexDirection = "column";
+      document.getElementById("submitBtn").disabled = false;
+    }
+
+    // ==========================================
+    //  BRIEF RENDERER
+    // ==========================================
+    function renderBrief(data) {
+      const s = data.sections || {};
+      const container = document.getElementById("briefSections");
+      container.innerHTML = "";
+
+      const sections = [
+        { key: "sales_summary",          icon: "📋", title: "Sales Summary",                   renderer: renderSalesSummary },
+        { key: "prospect_overview",       icon: "👤", title: "Prospect Overview",               renderer: renderProspectOverview },
+        { key: "professional_credentials",icon: "🏅", title: "Professional Credentials",        renderer: renderCredentials },
+        { key: "icebreaker_signals",      icon: "💬", title: "Icebreaker Signals",              renderer: renderIcebreakers },
+        { key: "company_overview",        icon: "🏢", title: "Company Overview",                renderer: renderCompanyOverview },
+        { key: "recent_company_activity", icon: "📰", title: "Recent Company Activity",         renderer: renderRecentActivity },
+        { key: "hiring_signals",          icon: "📌", title: "Hiring Signals",                  renderer: renderHiringSignals },
+        { key: "technology_signals",      icon: "🖧",  title: "Technology Signals",              renderer: renderTechSignals },
+        { key: "competitor_signals",      icon: "⚔",  title: "Competitor Signals",              renderer: renderCompetitorSignals },
+        { key: "account_level_signals",   icon: "📊", title: "Account-Level Signals",           renderer: renderAccountSignals },
+        { key: "key_contacts",            icon: "🔑", title: "Key Contacts",                    renderer: renderKeyContacts },
+        { key: "conversation_hooks",      icon: "🎯", title: "Conversation Hooks",              renderer: renderConversationHooks },
+      ];
+
+      sections.forEach(sec => {
+        const sectionData = s[sec.key];
+        if (!sectionData) return;
+        const card = buildCard(sec.icon, sec.title, sec.renderer(sectionData));
+        container.appendChild(card);
+      });
+    }
+
+    function buildCard(icon, title, bodyHTML) {
+      const card = document.createElement("div");
+      card.className = "section-card";
+      card.innerHTML = `
+        <div class="section-card-header">
+          <span class="section-icon">${icon}</span>
+          <h3>${title}</h3>
+        </div>
+        <div class="section-card-body">${bodyHTML}</div>
+      `;
+      return card;
+    }
+
+    function fv(val) {
+      // Render a field value — NA if missing/null/"N/A"
+      if (!val || val === "N/A" || val === "n/a") {
+        return `<span class="field-value na">N/A — not verified from public sources</span>`;
+      }
+      return `<span class="field-value">${escHtml(val)}</span>`;
+    }
+
+    function fr(label, val) {
+      return `<div class="field-row"><span class="field-label">${label}</span>${fv(val)}</div>`;
+    }
+
+    function renderList(arr, chipClass) {
+      if (!arr || arr.length === 0) {
+        return `<ul class="brief-list"><li class="na">None identified from public sources</li></ul>`;
+      }
+      if (chipClass) {
+        const chips = arr.map(i => `<span class="chip ${chipClass}">${escHtml(i)}</span>`).join(" ");
+        return `<div class="chip-group">${chips}</div>`;
+      }
+      const items = arr.map(i => `<li>${escHtml(i)}</li>`).join("");
+      return `<ul class="brief-list">${items}</ul>`;
+    }
+
+    function noteHtml(note) {
+      if (!note || note === "N/A") return "";
+      return `<div class="section-note">${escHtml(note)}</div>`;
+    }
+
+    function escHtml(str) {
+      const d = document.createElement("div");
+      d.appendChild(document.createTextNode(String(str)));
+      return d.innerHTML;
+    }
+
+    // ===== SECTION RENDERERS =====
+
+    function renderSalesSummary(d) {
+      const p1 = d.paragraph_1_company || "N/A";
+      const p2 = d.paragraph_2_challenges || "N/A";
+      const p3 = d.paragraph_3_firemon_fit || "N/A";
+      const isNA = p1 === "N/A" && p2 === "N/A";
+      if (isNA) return `<p class="field-value na">Summary could not be generated from available data.</p>`;
+      return `<div class="summary-block">
+        ${p1 !== "N/A" ? `<p>${escHtml(p1)}</p>` : ""}
+        ${p2 !== "N/A" ? `<p>${escHtml(p2)}</p>` : ""}
+        ${p3 !== "N/A" ? `<p>${escHtml(p3)}</p>` : ""}
+      </div>`;
+    }
+
+    function renderProspectOverview(d) {
+      let html = "";
+      html += fr("Full Name", d.full_name);
+      html += fr("Title", d.current_title);
+      html += fr("Department", d.department);
+      html += fr("LinkedIn Summary", d.linkedin_summary);
+      html += fr("Tenure", d.estimated_tenure);
+      if (d.prior_roles && d.prior_roles.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Prior Roles</span><div style="flex:1">${renderList(d.prior_roles)}</div></div>`;
+      }
+      return html;
+    }
+
+    function renderCredentials(d) {
+      let html = "";
+      html += `<div class="field-row"><span class="field-label">Vendor Certs</span><div style="flex:1">${renderList(d.vendor_certs, "chip-primary")}</div></div>`;
+      html += `<div class="field-row"><span class="field-label">Security Certs</span><div style="flex:1">${renderList(d.security_certs, "chip-accent")}</div></div>`;
+      if (d.awards && d.awards.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Awards</span><div style="flex:1">${renderList(d.awards)}</div></div>`;
+      }
+      html += noteHtml(d.note);
+      return html;
+    }
+
+    function renderIcebreakers(d) {
+      let html = "";
+      html += `<div class="field-row"><span class="field-label">Recent Activity</span><div style="flex:1">${renderList(d.recent_activity)}</div></div>`;
+      html += `<div class="field-row"><span class="field-label">Conferences</span><div style="flex:1">${renderList(d.conference_mentions)}</div></div>`;
+      html += noteHtml(d.note);
+      return html;
+    }
+
+    function renderCompanyOverview(d) {
+      let html = "";
+      html += fr("Industry", d.industry);
+      html += fr("Headquarters", d.headquarters);
+      html += fr("Employee Count", d.employee_count);
+      html += fr("Growth Stage", d.growth_stage);
+      if (d.description && d.description !== "N/A") {
+        html += `<div class="field-row" style="flex-direction:column;gap:4px"><span class="field-label">Description</span><span class="field-value" style="line-height:1.6">${escHtml(d.description)}</span></div>`;
+      }
+      return html;
+    }
+
+    function renderRecentActivity(d) {
+      let html = "";
+      const news = [...(d.press_releases||[]), ...(d.funding_events||[]), ...(d.ma_events||[]), ...(d.partnerships||[])];
+      html += renderList(news);
+      html += noteHtml(d.note);
+      return html;
+    }
+
+    function renderHiringSignals(d) {
+      let html = "";
+      if (d.hiring_themes && d.hiring_themes.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Themes</span><div style="flex:1">${renderList(d.hiring_themes, "chip-primary")}</div></div>`;
+      }
+      if (d.active_job_postings && d.active_job_postings.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Active Postings</span><div style="flex:1">${renderList(d.active_job_postings)}</div></div>`;
+      } else {
+        html += renderList([]);
+      }
+      html += noteHtml(d.note);
+      return html;
+    }
+
+    function renderTechSignals(d) {
+      let html = "";
+      html += `<div class="field-row"><span class="field-label">Firewall Platforms</span><div style="flex:1">${renderList(d.firewall_platforms, "chip-primary")}</div></div>`;
+      html += `<div class="field-row"><span class="field-label">Cloud Providers</span><div style="flex:1">${renderList(d.cloud_providers, "chip-neutral")}</div></div>`;
+      if (d.security_tools && d.security_tools.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Security Tools</span><div style="flex:1">${renderList(d.security_tools, "chip-accent")}</div></div>`;
+      }
+      html += noteHtml(d.note);
+      return html;
+    }
+
+    function renderCompetitorSignals(d) {
+      const hasData = (d.algosec_references?.length || d.tufin_references?.length || d.other_tools?.length);
+      let html = "";
+      if (d.algosec_references && d.algosec_references.length > 0) {
+        html += `<div class="field-row"><span class="field-label">AlgoSec</span><div style="flex:1">${renderList(d.algosec_references, "chip-danger")}</div></div>`;
+      }
+      if (d.tufin_references && d.tufin_references.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Tufin</span><div style="flex:1">${renderList(d.tufin_references, "chip-danger")}</div></div>`;
+      }
+      if (d.other_tools && d.other_tools.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Other</span><div style="flex:1">${renderList(d.other_tools, "chip-neutral")}</div></div>`;
+      }
+      if (!hasData) html += `<ul class="brief-list"><li class="na">No competitor signals identified</li></ul>`;
+      html += noteHtml(d.note);
+      return html;
+    }
+
+    function renderAccountSignals(d) {
+      let html = "";
+      html += fr("Security Team Size", d.security_team_size_estimate);
+      html += fr("Hiring Growth", d.hiring_growth_rate);
+      if (d.dedicated_network_security !== undefined && d.dedicated_network_security !== "N/A") {
+        html += fr("Dedicated NetSec Team", String(d.dedicated_network_security));
+      }
+      html += noteHtml(d.note);
+      return html;
+    }
+
+    function renderKeyContacts(d) {
+      let html = "";
+      html += fr("CISO", d.ciso);
+      if (d.security_architects && d.security_architects.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Security Architects</span><div style="flex:1">${renderList(d.security_architects)}</div></div>`;
+      }
+      if (d.network_security_leads && d.network_security_leads.length > 0) {
+        html += `<div class="field-row"><span class="field-label">NetSec Leads</span><div style="flex:1">${renderList(d.network_security_leads)}</div></div>`;
+      }
+      html += noteHtml(d.note || "Key contacts are only listed when verified from LinkedIn or company public sources.");
+      return html;
+    }
+
+    function renderConversationHooks(d) {
+      let html = renderList(d.hooks);
+      html += noteHtml(d.note);
+      return html;
+    }
+
+    // ==========================================
+    //  PDF DOWNLOAD
+    // ==========================================
+    async function downloadPDF() {
+      if (!currentFormData) return;
+      const btn = document.getElementById("btnPdf");
+      btn.disabled = true;
+      btn.textContent = "Generating PDF…";
+
+      try {
+        const resp = await fetch(N8N_PDF_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(currentFormData),
+        });
+
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+        const data = await resp.json();
+
+        if (data.pdf_base64) {
+          const bytes = atob(data.pdf_base64);
+          const arr = new Uint8Array(bytes.length);
+          for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+          const blob = new Blob([arr], { type: "application/pdf" });
+          const url  = URL.createObjectURL(blob);
+          const a    = document.createElement("a");
+          a.href     = url;
+          a.download = `Account_Intelligence_Brief_${currentFormData.company.replace(/\s+/g,"_")}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        } else {
+          alert("PDF generation failed. Please try again.");
+        }
+      } catch (err) {
+        alert("Could not generate PDF: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "↓ Download PDF";
+      }
+    }
+
+    // ==========================================
+    //  HELPERS
+    // ==========================================
+    function showFieldError(id, show) {
+      const el = document.getElementById(id);
+      const input = el.previousElementSibling;
+      el.style.display = show ? "block" : "none";
+      if (show) input.classList.add("error");
+      else input.classList.remove("error");
+    }
+
+    // Init
+    document.getElementById("stateIdle").style.display = "flex";
+    document.getElementById("stateIdle").style.flexDirection = "column";
+  </script>
+</body>
+</html>
