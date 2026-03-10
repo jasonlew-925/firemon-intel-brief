@@ -675,9 +675,9 @@
 
         <div class="field-group single">
           <div class="field">
-            <label for="company">Company <span style="color:#E53E3E">*</span></label>
-            <input type="text" id="company" name="company" placeholder="Acme Corporation" autocomplete="organization" required>
-            <span class="field-error" id="companyError">Required</span>
+            <label for="companyUrl">Company Website <span style="color:#E53E3E">*</span></label>
+            <input type="url" id="companyUrl" name="company_url" placeholder="https://www.acme.com" autocomplete="url" required>
+            <span class="field-error" id="companyUrlError">Required</span>
           </div>
         </div>
 
@@ -777,7 +777,7 @@
 
       const firstName = document.getElementById("firstName").value.trim();
       const lastName  = document.getElementById("lastName").value.trim();
-      const company   = document.getElementById("company").value.trim();
+      const companyUrl = document.getElementById("companyUrl").value.trim();
       const title     = document.getElementById("title").value.trim();
       const state     = document.getElementById("state").value.trim();
 
@@ -785,12 +785,12 @@
       let valid = true;
       if (!firstName) { showFieldError("firstNameError", true); valid = false; } else { showFieldError("firstNameError", false); }
       if (!lastName)  { showFieldError("lastNameError",  true); valid = false; } else { showFieldError("lastNameError",  false); }
-      if (!company)   { showFieldError("companyError",   true); valid = false; } else { showFieldError("companyError",   false); }
+      if (!companyUrl){ showFieldError("companyUrlError", true); valid = false; } else { showFieldError("companyUrlError", false); }
       if (!valid) return;
 
-      currentFormData = { first_name: firstName, last_name: lastName, company, title, state };
+      currentFormData = { first_name: firstName, last_name: lastName, company_url: companyUrl, title, state };
 
-      setLoadingState(firstName, lastName, company);
+      setLoadingState(firstName, lastName, companyUrl);
 
       const controller = new AbortController();
       const timeoutId  = setTimeout(() => controller.abort(), TIMEOUT_MS);
