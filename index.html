@@ -636,6 +636,8 @@
       .btn-pdf { width: 100%; text-align: center; }
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -763,7 +765,6 @@
     //  CONFIGURATION — Update with your n8n URLs
     // ==========================================
     const N8N_WEBHOOK_URL = "https://firemon.app.n8n.cloud/webhook/brief/generate";
-    const N8N_PDF_URL     = "https://firemon.app.n8n.cloud/webhook/brief/pdf";
     const TIMEOUT_MS      = 120000; // 2 minutes
 
     // ==========================================
@@ -887,6 +888,7 @@
         : "";
       document.getElementById("resultMeta").innerHTML = `${company}${qBadge}`;
 
+      window.lastBrief = data;
       renderBrief(data);
     }
 
@@ -1139,40 +1141,43 @@
     //  PDF DOWNLOAD
     // ==========================================
     async function downloadPDF() {
-      if (!currentFormData) return;
       const btn = document.getElementById("btnPdf");
+      const briefEl = document.getElementById("stateResult");
+      if (!briefEl || !window.lastBrief) return;
+
       btn.disabled = true;
       btn.textContent = "Generating PDF…";
 
       try {
-        const resp = await fetch(N8N_PDF_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(currentFormData),
+        btn.style.visibility = "hidden";
+
+        const canvas = await html2canvas(briefEl, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          logging: false
         });
 
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        btn.style.visibility = "visible";
 
-        const data = await resp.json();
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+        const imgW = 210;
+        const imgH = (canvas.height * imgW) / canvas.width;
+        const pageH = 297;
+        let yPos = 0;
 
-        if (data.pdf_base64) {
-          const bytes = atob(data.pdf_base64);
-          const arr = new Uint8Array(bytes.length);
-          for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-          const blob = new Blob([arr], { type: "application/pdf" });
-          const url  = URL.createObjectURL(blob);
-          const a    = document.createElement("a");
-          a.href     = url;
-          a.download = `Account_Intelligence_Brief_${currentFormData.company.replace(/\s+/g,"_")}.pdf`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        } else {
-          alert("PDF generation failed. Please try again.");
+        while (yPos < imgH) {
+          if (yPos > 0) pdf.addPage();
+          pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, -yPos, imgW, imgH);
+          yPos += pageH;
         }
+
+        const company = (window.lastBrief?.company || "Account").replace(/\s+/g, "_");
+        pdf.save(`Intelligence_Brief_${company}.pdf`);
       } catch (err) {
-        alert("Could not generate PDF: " + err.message);
+        btn.style.visibility = "visible";
+        alert("PDF generation failed: " + err.message);
       } finally {
         btn.disabled = false;
         btn.textContent = "↓ Download PDF";
