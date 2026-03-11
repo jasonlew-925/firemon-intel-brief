@@ -635,6 +635,20 @@
       .result-topbar { flex-direction: column; }
       .btn-pdf { width: 100%; text-align: center; }
     }
+
+    /* ===== SOURCES ARCHIVE ===== */
+    .sources-grid { display: flex; flex-direction: column; gap: 20px; }
+    .sources-category { display: flex; flex-direction: column; gap: 6px; }
+    .sources-cat-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+    .source-row { display: flex; align-items: flex-start; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .source-row:last-child { border-bottom: none; }
+    .src-link { flex: 1; font-size: 12px; color: var(--primary); text-decoration: none; word-break: break-all; }
+    .src-link:hover { text-decoration: underline; }
+    .src-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; white-space: nowrap; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+    .src-ok      { background: #d4edda; color: #155724; }
+    .src-blocked { background: #f8d7da; color: #721c24; }
+    .src-empty   { background: #fff3cd; color: #856404; }
+    .src-searched{ background: #e2e3e5; color: #383d41; }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -947,6 +961,12 @@
         const card = buildCard(sec.icon, sec.title, sec.renderer(sectionData));
         container.appendChild(card);
       });
+
+      // Sources archive — always render at the bottom
+      if (data.sources && data.sources.length > 0) {
+        const srcCard = buildCard("🗂", "Sources Archive", renderSources(data.sources));
+        container.appendChild(srcCard);
+      }
     }
 
     function buildCard(icon, title, bodyHTML) {
@@ -1127,6 +1147,32 @@
         html += `<div class="field-row"><span class="field-label">NetSec Leads</span><div style="flex:1">${renderList(d.network_security_leads)}</div></div>`;
       }
       html += noteHtml(d.note || "Key contacts are only listed when verified from LinkedIn or company public sources.");
+      return html;
+    }
+
+    function renderSources(sources) {
+      const byCategory = {};
+      sources.forEach(s => {
+        const cat = s.category || 'Other';
+        if (!byCategory[cat]) byCategory[cat] = [];
+        byCategory[cat].push(s);
+      });
+      let html = '<div class="sources-grid">';
+      for (const [cat, items] of Object.entries(byCategory)) {
+        html += `<div class="sources-category"><div class="sources-cat-label">${cat}</div>`;
+        items.forEach(s => {
+          const statusClass = s.status && (s.status.startsWith('ok') || s.status.includes('found')) ? 'src-ok'
+            : s.status && s.status.includes('blocked') ? 'src-blocked'
+            : s.status && (s.status.includes('no result') || s.status.includes('not found') || s.status.includes('no response')) ? 'src-empty'
+            : 'src-searched';
+          html += `<div class="source-row">
+            <a class="src-link" href="${s.url}" target="_blank" rel="noopener">${s.label}</a>
+            <span class="src-status ${statusClass}">${s.status || '—'}</span>
+          </div>`;
+        });
+        html += '</div>';
+      }
+      html += '</div>';
       return html;
     }
 
