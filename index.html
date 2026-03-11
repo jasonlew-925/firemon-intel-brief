@@ -949,6 +949,7 @@
         { key: "company_overview",        icon: "🏢", title: "Company Overview",                renderer: renderCompanyOverview },
         { key: "recent_company_activity", icon: "📰", title: "Recent Company Activity",         renderer: renderRecentActivity },
         { key: "hiring_signals",          icon: "📌", title: "Hiring Signals",                  renderer: renderHiringSignals },
+        { key: "social_media_activity",   icon: "📣", title: "Social Media Activity",          renderer: renderSocialActivity },
         { key: "technology_signals",      icon: "🖧",  title: "Technology Signals",              renderer: renderTechSignals },
         { key: "competitor_signals",      icon: "⚔",  title: "Competitor Signals",              renderer: renderCompetitorSignals },
         { key: "account_level_signals",   icon: "📊", title: "Account-Level Signals",           renderer: renderAccountSignals },
@@ -1086,25 +1087,48 @@
 
     function renderHiringSignals(d) {
       let html = "";
+      if (d.job_roles_targeted && d.job_roles_targeted.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Roles Targeted</span><div style="flex:1">${renderList(d.job_roles_targeted)}</div></div>`;
+      }
+      if (d.skills_required && d.skills_required.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Skills Required</span><div style="flex:1">${renderList(d.skills_required, "chip-accent")}</div></div>`;
+      }
       if (d.hiring_themes && d.hiring_themes.length > 0) {
-        html += `<div class="field-row"><span class="field-label">Themes</span><div style="flex:1">${renderList(d.hiring_themes, "chip-primary")}</div></div>`;
+        html += `<div class="field-row"><span class="field-label">Hiring Themes</span><div style="flex:1">${renderList(d.hiring_themes, "chip-primary")}</div></div>`;
       }
-      if (d.active_job_postings && d.active_job_postings.length > 0) {
-        html += `<div class="field-row"><span class="field-label">Active Postings</span><div style="flex:1">${renderList(d.active_job_postings)}</div></div>`;
-      } else {
-        html += renderList([]);
+      if (!d.job_roles_targeted?.length && !d.hiring_themes?.length) { html += renderList([]); }
+      html += noteHtml(d.note);
+      return html;
+    }
+
+    function renderSocialActivity(d) {
+      let html = "";
+      if (d.recent_posts && d.recent_posts.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Recent Posts</span><div style="flex:1">${renderList(d.recent_posts)}</div></div>`;
       }
+      if (d.topics && d.topics.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Topics</span><div style="flex:1">${renderList(d.topics, "chip-neutral")}</div></div>`;
+      }
+      if (!d.recent_posts?.length && !d.topics?.length) { html += renderList([]); }
       html += noteHtml(d.note);
       return html;
     }
 
     function renderTechSignals(d) {
       let html = "";
-      html += `<div class="field-row"><span class="field-label">Firewall Platforms</span><div style="flex:1">${renderList(d.firewall_platforms, "chip-primary")}</div></div>`;
-      html += `<div class="field-row"><span class="field-label">Cloud Providers</span><div style="flex:1">${renderList(d.cloud_providers, "chip-neutral")}</div></div>`;
+      if (d.firewall_platforms && d.firewall_platforms.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Firewall Platforms</span><div style="flex:1">${renderList(d.firewall_platforms, "chip-primary")}</div></div>`;
+      }
+      if (d.cloud_providers && d.cloud_providers.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Cloud Providers</span><div style="flex:1">${renderList(d.cloud_providers, "chip-neutral")}</div></div>`;
+      }
       if (d.security_tools && d.security_tools.length > 0) {
         html += `<div class="field-row"><span class="field-label">Security Tools</span><div style="flex:1">${renderList(d.security_tools, "chip-accent")}</div></div>`;
       }
+      if (d.all_tech && d.all_tech.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Full Stack</span><div style="flex:1">${renderList(d.all_tech, "chip-neutral")}</div></div>`;
+      }
+      if (!d.firewall_platforms?.length && !d.cloud_providers?.length && !d.security_tools?.length) { html += renderList([]); }
       html += noteHtml(d.note);
       return html;
     }
