@@ -1037,7 +1037,14 @@
       let html = "";
       html += fr("Full Name", d.full_name);
       html += fr("Title", d.current_title);
+      if (d.seniority && d.seniority !== "N/A") html += fr("Seniority", d.seniority);
       html += fr("Department", d.department);
+      if (d.email && d.email !== "N/A") {
+        html += `<div class="field-row"><span class="field-label">Email</span><a class="src-link" href="mailto:${d.email}">${d.email}</a></div>`;
+      }
+      if (d.linkedin_url && d.linkedin_url !== "N/A") {
+        html += `<div class="field-row"><span class="field-label">LinkedIn</span><a class="src-link" href="${d.linkedin_url}" target="_blank" rel="noopener">${d.linkedin_url}</a></div>`;
+      }
       html += fr("LinkedIn Summary", d.linkedin_summary);
       html += fr("Tenure", d.estimated_tenure);
       if (d.prior_roles && d.prior_roles.length > 0) {
