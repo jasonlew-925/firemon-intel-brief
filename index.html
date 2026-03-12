@@ -1201,6 +1201,9 @@
     }
 
     function renderSources(sources) {
+      if (!sources || sources.length === 0) {
+        return '<p class="field-value na">No sources recorded.</p>';
+      }
       const byCategory = {};
       sources.forEach(s => {
         const cat = s.category || 'Other';
@@ -1209,16 +1212,18 @@
       });
       let html = '<div class="sources-grid">';
       for (const [cat, items] of Object.entries(byCategory)) {
-        html += `<div class="sources-category"><div class="sources-cat-label">${cat}</div>`;
+        html += `<div class="sources-category"><div class="sources-cat-label">${escHtml(cat)}</div>`;
         items.forEach(s => {
-          const statusClass = s.status && (s.status.startsWith('ok') || s.status.includes('found')) ? 'src-ok'
-            : s.status && s.status.includes('blocked') ? 'src-blocked'
-            : s.status && (s.status.includes('no result') || s.status.includes('not found') || s.status.includes('no response')) ? 'src-empty'
-            : 'src-searched';
           const hasUrl = s.url && s.url.startsWith('http');
+          const displayUrl = hasUrl ? (s.url.length > 65 ? s.url.substring(0,65)+'…' : s.url) : null;
           html += `<div class="source-row">
-            ${hasUrl ? `<a class="src-link" href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : `<span class="src-link">${s.label}</span>`}
-            <span class="src-status ${statusClass}">${s.status || '—'}</span>
+            <div style="flex:1;min-width:0">
+              ${hasUrl
+                ? `<a class="src-link" href="${s.url}" target="_blank" rel="noopener" title="${s.url}">${escHtml(s.label)}</a>`
+                : `<span class="src-link">${escHtml(s.label)}</span>`}
+              ${hasUrl ? `<div style="font-size:10px;color:var(--text-muted,#9ca3af);word-break:break-all;margin-top:1px">${escHtml(displayUrl)}</div>` : ''}
+            </div>
+            <span class="src-status src-ok">${escHtml(s.status || 'ok')}</span>
           </div>`;
         });
         html += '</div>';
