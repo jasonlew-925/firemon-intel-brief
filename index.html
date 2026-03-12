@@ -551,9 +551,8 @@
     /* ===== SALES SUMMARY ===== */
     .summary-block {
       padding: 20px;
-      border-left: 4px solid var(--secondary);
       background: #FFFBF8;
-      border-radius: 0 var(--radius) var(--radius) 0;
+      border-radius: var(--radius);
     }
 
     .summary-block p {
@@ -934,15 +933,14 @@
       sections.forEach(sec => {
         const sectionData = s[sec.key];
         if (!sectionData) return;
-        // Skip credentials section if all fields are empty/N/A/None
+        // Skip credentials section if all fields are empty/N/A/None/string placeholders
         if (sec.skipIfBlank) {
           const creds = sectionData;
-          const isReal = v => v && typeof v === "string" && v.trim().length > 0
-            && !v.startsWith("N/A") && !v.toLowerCase().startsWith("none") && !v.toLowerCase().includes("not identified");
-          const hasCerts = (Array.isArray(creds.vendor_certs) && creds.vendor_certs.some(isReal))
-            || (Array.isArray(creds.security_certs) && creds.security_certs.some(isReal))
-            || (Array.isArray(creds.awards) && creds.awards.some(isReal));
-          if (!hasCerts) return;
+          // Treat both string and array values; skip common "nothing found" patterns
+          const BLANK = /^(n\/a|none|not |no |unknown|n\/a |empty)/i;
+          const toArr = v => Array.isArray(v) ? v : (v && typeof v === 'string' ? [v] : []);
+          const hasReal = f => toArr(f).some(v => v && typeof v === 'string' && v.trim().length > 2 && !BLANK.test(v.trim()));
+          if (!hasReal(creds.vendor_certs) && !hasReal(creds.security_certs) && !hasReal(creds.awards)) return;
         }
         const card = buildCard(sec.icon, sec.title, sec.renderer(sectionData));
         container.appendChild(card);
@@ -1110,35 +1108,70 @@
 
     function renderNewsPR(d) {
       let html = "";
-      const articles = d.articles || [];
+
+      // Collect real article objects — filter out schema-description strings
+      let articles = (d.articles || []).filter(a => a && typeof a === 'object');
+
+      // If AI failed to structure articles, fall back to parsing raw item strings
+      if (articles.length === 0) {
+        const rawItems = d.items || d.news_items || [];
+        articles = rawItems
+          .filter(a => a && typeof a === 'object' && (a.headline || a.summary || a.title))
+          .map(a => ({
+            headline: a.headline || a.title || a.summary || '',
+            source:   a.source || '',
+            date:     a.date || '',
+            summary:  a.summary || '',
+            url:      a.url || ''
+          }));
+      }
+
       if (articles.length > 0) {
-        html += '<div style="display:flex;flex-direction:column;gap:12px">';
+        html += '<div style="display:flex;flex-direction:column;gap:14px">';
         articles.forEach(a => {
-          if (!a || typeof a !== 'object') return;
-          html += '<div style="border-left:3px solid var(--accent-blue,#3b82f6);padding:6px 10px;background:rgba(255,255,255,0.03);border-radius:0 4px 4px 0">';
-          if (a.source || a.date) {
-            html += `<div style="display:flex;gap:8px;align-items:baseline;margin-bottom:3px">`;
-            if (a.source) html += `<span style="font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--accent-blue,#3b82f6)">${escHtml(a.source)}</span>`;
-            if (a.date)   html += `<span style="font-size:10px;color:var(--text-muted,#9ca3af)">${escHtml(a.date)}</span>`;
+          const headline = (a.headline || a.title || '').replace(/\*\*/g, '').replace(/^[-–\s]+/, '').trim();
+          const summary  = (a.summary || '').replace(/\*\*/g, '').trim();
+          const source   = (a.source || '').trim();
+          const date     = (a.date || '').trim();
+          const url      = (a.url && a.url.startsWith('http')) ? a.url : '';
+          if (!headline && !summary) return;
+          html += '<div style="border-left:3px solid var(--secondary);padding:8px 12px;background:#FFFBF8;border-radius:0 4px 4px 0">';
+          // Source + date row
+          if (source || date) {
+            html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">';
+            if (source) html += `<span style="font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--secondary)">${escHtml(source)}</span>`;
+            if (date)   html += `<span style="font-size:10px;color:var(--muted)">${escHtml(date)}</span>`;
             html += '</div>';
           }
-          if (a.headline) html += `<div style="font-weight:600;font-size:13px;margin-bottom:3px">${escHtml(a.headline)}</div>`;
-          if (a.summary)  html += `<div style="font-size:12px;color:var(--text-muted,#9ca3af);line-height:1.5">${escHtml(a.summary)}</div>`;
-          if (a.url && a.url.length > 6 && a.url.startsWith('http')) {
-            html += `<a href="${a.url}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent-blue,#3b82f6);word-break:break-all">${escHtml(a.url.length > 70 ? a.url.substring(0,70)+'…' : a.url)}</a>`;
+          // Headline
+          if (headline) {
+            if (url) {
+              html += `<a href="${url}" target="_blank" rel="noopener" style="font-weight:600;font-size:13px;color:var(--primary);text-decoration:none;display:block;margin-bottom:3px">${escHtml(headline)}</a>`;
+            } else {
+              html += `<div style="font-weight:600;font-size:13px;color:var(--primary);margin-bottom:3px">${escHtml(headline)}</div>`;
+            }
+          }
+          // Summary
+          if (summary && summary !== headline) {
+            html += `<div style="font-size:12px;color:var(--muted);line-height:1.5">${escHtml(summary)}</div>`;
           }
           html += '</div>';
         });
         html += '</div>';
       }
-      if (d.topics && d.topics.length > 0 && d.topics[0] !== "N/A") {
-        html += `<div class="field-row" style="margin-top:10px"><span class="field-label">Topics</span><div style="flex:1">${renderList(d.topics, "chip-neutral")}</div></div>`;
+
+      // Topics row
+      if (d.topics && Array.isArray(d.topics) && d.topics.length > 0 && d.topics[0] !== "N/A") {
+        const realTopics = d.topics.filter(t => t && t !== 'N/A' && t.length > 1);
+        if (realTopics.length > 0) {
+          html += `<div class="field-row" style="margin-top:10px"><span class="field-label">Topics</span><div style="flex:1">${renderChips(realTopics, 'chip-neutral')}</div></div>`;
+        }
       }
-      if (!articles.length) html += renderList([]);
+
+      if (!html) html = `<p class="field-value na">No news or PR coverage found.</p>`;
       html += noteHtml(d.note);
       return html;
     }
-
     function renderTechSignals(d) {
       let html = "";
       if (d.firewall_platforms && d.firewall_platforms.length > 0) {
