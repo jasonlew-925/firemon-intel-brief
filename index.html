@@ -923,8 +923,8 @@
         { key: "icebreaker_signals",      icon: "💬", title: "Icebreaker Signals",       renderer: renderIcebreakers },
         { key: "company_overview",        icon: "🏢", title: "Company Overview",         renderer: renderCompanyOverview },
         { key: "recent_company_activity", icon: "📰", title: "Recent Company Activity",  renderer: renderRecentActivity },
-        { key: "hiring_signals",          icon: "📌", title: "Hiring Signals",           renderer: renderHiringSignals },
         { key: "news_pr_activity",        icon: "📣", title: "News & PR Coverage",       renderer: renderNewsPR },
+        { key: "hiring_signals",          icon: "📌", title: "Hiring Signals",           renderer: renderHiringSignals },
         { key: "technology_signals",      icon: "🖧",  title: "Technology Signals",       renderer: renderTechSignals },
         { key: "competitor_signals",      icon: "⚔",  title: "Competitor Signals",       renderer: renderCompetitorSignals },
         { key: "account_level_signals",   icon: "📊", title: "Account-Level Signals",    renderer: renderAccountSignals },
@@ -934,12 +934,14 @@
       sections.forEach(sec => {
         const sectionData = s[sec.key];
         if (!sectionData) return;
-        // Skip credentials section entirely if all fields are empty/N/A
+        // Skip credentials section if all fields are empty/N/A/None
         if (sec.skipIfBlank) {
           const creds = sectionData;
-          const hasCerts = (creds.vendor_certs?.length && creds.vendor_certs.some(c => c && c !== "N/A"))
-            || (creds.security_certs?.length && creds.security_certs.some(c => c && c !== "N/A"))
-            || (creds.awards?.length && creds.awards.some(c => c && c !== "N/A"));
+          const isReal = v => v && typeof v === "string" && v.trim().length > 0
+            && !v.startsWith("N/A") && !v.toLowerCase().startsWith("none") && !v.toLowerCase().includes("not identified");
+          const hasCerts = (Array.isArray(creds.vendor_certs) && creds.vendor_certs.some(isReal))
+            || (Array.isArray(creds.security_certs) && creds.security_certs.some(isReal))
+            || (Array.isArray(creds.awards) && creds.awards.some(isReal));
           if (!hasCerts) return;
         }
         const card = buildCard(sec.icon, sec.title, sec.renderer(sectionData));
