@@ -54,27 +54,11 @@
       text-decoration: none;
     }
 
-    .logo-mark {
-      width: 32px;
-      height: 32px;
-      background: var(--secondary);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-head);
-      font-weight: 700;
-      font-size: 16px;
-      color: white;
-      letter-spacing: -0.5px;
-    }
-
-    .logo-name {
-      font-family: var(--font-head);
-      font-weight: 700;
-      font-size: 18px;
-      color: white;
-      letter-spacing: 0.02em;
+    .logo-mark img {
+      height: 28px;
+      width: auto;
+      display: block;
+      filter: brightness(0) invert(1);
     }
 
     .header-title {
@@ -261,17 +245,9 @@
     }
 
     .idle-logo-mark {
-      width: 56px;
-      height: 56px;
-      background: var(--primary);
-      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: var(--font-head);
-      font-weight: 700;
-      font-size: 24px;
-      color: white;
       margin-bottom: 4px;
     }
 
@@ -658,8 +634,7 @@
   <!-- HEADER -->
   <header class="app-header">
     <a class="header-logo" href="#">
-      <div class="logo-mark">F</div>
-      <span class="logo-name">FireMon</span>
+      <div class="logo-mark"><img src="https://www.firemon.com/wp-content/uploads/2024/09/FireMon_Logo_ColorBlack_Horizonal.svg" alt="FireMon" /></div>
     </a>
     <span class="header-title">Account Intelligence Brief</span>
   </header>
@@ -727,7 +702,7 @@
 
       <!-- IDLE STATE -->
       <div class="state-idle" id="stateIdle">
-        <div class="idle-logo-mark">F</div>
+        <div class="idle-logo-mark"><img src="https://www.firemon.com/wp-content/uploads/2024/09/FireMon_Logo_ColorBlack_Horizonal.svg" alt="FireMon" style="height:48px;width:auto;" /></div>
         <div class="idle-title">Ready to Research</div>
         <p class="idle-subtitle">
           Enter prospect details on the left to generate a verified Account Intelligence Brief — powered by FireMon's AI research engine.
