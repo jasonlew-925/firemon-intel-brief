@@ -917,23 +917,31 @@
       container.innerHTML = "";
 
       const sections = [
-        { key: "sales_summary",          icon: "📋", title: "Sales Summary",                   renderer: renderSalesSummary },
-        { key: "prospect_overview",       icon: "👤", title: "Prospect Overview",               renderer: renderProspectOverview },
-        { key: "professional_credentials",icon: "🏅", title: "Professional Credentials",        renderer: renderCredentials },
-        { key: "icebreaker_signals",      icon: "💬", title: "Icebreaker Signals",              renderer: renderIcebreakers },
-        { key: "company_overview",        icon: "🏢", title: "Company Overview",                renderer: renderCompanyOverview },
-        { key: "recent_company_activity", icon: "📰", title: "Recent Company Activity",         renderer: renderRecentActivity },
-        { key: "hiring_signals",          icon: "📌", title: "Hiring Signals",                  renderer: renderHiringSignals },
-        { key: "social_media_activity",   icon: "📣", title: "Social Media Activity",          renderer: renderSocialActivity },
-        { key: "technology_signals",      icon: "🖧",  title: "Technology Signals",              renderer: renderTechSignals },
-        { key: "competitor_signals",      icon: "⚔",  title: "Competitor Signals",              renderer: renderCompetitorSignals },
-        { key: "account_level_signals",   icon: "📊", title: "Account-Level Signals",           renderer: renderAccountSignals },
-        { key: "conversation_hooks",      icon: "🎯", title: "Conversation Hooks",              renderer: renderConversationHooks },
+        { key: "sales_summary",          icon: "📋", title: "Sales Summary",           renderer: renderSalesSummary },
+        { key: "prospect_overview",       icon: "👤", title: "Prospect Overview",       renderer: renderProspectOverview },
+        { key: "professional_credentials",icon: "🏅", title: "Professional Credentials", renderer: renderCredentials,   skipIfBlank: true },
+        { key: "icebreaker_signals",      icon: "💬", title: "Icebreaker Signals",       renderer: renderIcebreakers },
+        { key: "company_overview",        icon: "🏢", title: "Company Overview",         renderer: renderCompanyOverview },
+        { key: "recent_company_activity", icon: "📰", title: "Recent Company Activity",  renderer: renderRecentActivity },
+        { key: "hiring_signals",          icon: "📌", title: "Hiring Signals",           renderer: renderHiringSignals },
+        { key: "news_pr_activity",        icon: "📣", title: "News & PR Coverage",       renderer: renderNewsPR },
+        { key: "technology_signals",      icon: "🖧",  title: "Technology Signals",       renderer: renderTechSignals },
+        { key: "competitor_signals",      icon: "⚔",  title: "Competitor Signals",       renderer: renderCompetitorSignals },
+        { key: "account_level_signals",   icon: "📊", title: "Account-Level Signals",    renderer: renderAccountSignals },
+        { key: "conversation_hooks",      icon: "🎯", title: "Conversation Hooks",       renderer: renderConversationHooks },
       ];
 
       sections.forEach(sec => {
         const sectionData = s[sec.key];
         if (!sectionData) return;
+        // Skip credentials section entirely if all fields are empty/N/A
+        if (sec.skipIfBlank) {
+          const creds = sectionData;
+          const hasCerts = (creds.vendor_certs?.length && creds.vendor_certs.some(c => c && c !== "N/A"))
+            || (creds.security_certs?.length && creds.security_certs.some(c => c && c !== "N/A"))
+            || (creds.awards?.length && creds.awards.some(c => c && c !== "N/A"));
+          if (!hasCerts) return;
+        }
         const card = buildCard(sec.icon, sec.title, sec.renderer(sectionData));
         container.appendChild(card);
       });
@@ -1061,8 +1069,19 @@
 
     function renderRecentActivity(d) {
       let html = "";
-      const news = [...(d.press_releases||[]), ...(d.funding_events||[]), ...(d.ma_events||[]), ...(d.partnerships||[])];
-      html += renderList(news);
+      if (d.news_mentions && d.news_mentions.length > 0) {
+        html += renderList(d.news_mentions);
+      }
+      if (d.ma_events && d.ma_events.length > 0 && d.ma_events[0] !== "N/A") {
+        html += `<div class="field-row"><span class="field-label">M&amp;A</span><div style="flex:1">${renderList(d.ma_events)}</div></div>`;
+      }
+      if (d.funding_events && d.funding_events.length > 0 && d.funding_events[0] !== "N/A") {
+        html += `<div class="field-row"><span class="field-label">Funding</span><div style="flex:1">${renderList(d.funding_events)}</div></div>`;
+      }
+      if (d.partnerships && d.partnerships.length > 0 && d.partnerships[0] !== "N/A") {
+        html += `<div class="field-row"><span class="field-label">Partnerships</span><div style="flex:1">${renderList(d.partnerships)}</div></div>`;
+      }
+      if (!d.news_mentions?.length && !d.ma_events?.length) html += renderList([]);
       html += noteHtml(d.note);
       return html;
     }
@@ -1084,14 +1103,36 @@
     }
 
     function renderSocialActivity(d) {
+      return renderNewsPR(d);
+    }
+
+    function renderNewsPR(d) {
       let html = "";
-      if (d.recent_posts && d.recent_posts.length > 0) {
-        html += `<div class="field-row"><span class="field-label">Recent Posts</span><div style="flex:1">${renderList(d.recent_posts)}</div></div>`;
+      const articles = d.articles || [];
+      if (articles.length > 0) {
+        html += '<div style="display:flex;flex-direction:column;gap:12px">';
+        articles.forEach(a => {
+          if (!a || typeof a !== 'object') return;
+          html += '<div style="border-left:3px solid var(--accent-blue,#3b82f6);padding:6px 10px;background:rgba(255,255,255,0.03);border-radius:0 4px 4px 0">';
+          if (a.source || a.date) {
+            html += `<div style="display:flex;gap:8px;align-items:baseline;margin-bottom:3px">`;
+            if (a.source) html += `<span style="font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--accent-blue,#3b82f6)">${escHtml(a.source)}</span>`;
+            if (a.date)   html += `<span style="font-size:10px;color:var(--text-muted,#9ca3af)">${escHtml(a.date)}</span>`;
+            html += '</div>';
+          }
+          if (a.headline) html += `<div style="font-weight:600;font-size:13px;margin-bottom:3px">${escHtml(a.headline)}</div>`;
+          if (a.summary)  html += `<div style="font-size:12px;color:var(--text-muted,#9ca3af);line-height:1.5">${escHtml(a.summary)}</div>`;
+          if (a.url && a.url.length > 6 && a.url.startsWith('http')) {
+            html += `<a href="${a.url}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent-blue,#3b82f6);word-break:break-all">${escHtml(a.url.length > 70 ? a.url.substring(0,70)+'…' : a.url)}</a>`;
+          }
+          html += '</div>';
+        });
+        html += '</div>';
       }
-      if (d.topics && d.topics.length > 0) {
-        html += `<div class="field-row"><span class="field-label">Topics</span><div style="flex:1">${renderList(d.topics, "chip-neutral")}</div></div>`;
+      if (d.topics && d.topics.length > 0 && d.topics[0] !== "N/A") {
+        html += `<div class="field-row" style="margin-top:10px"><span class="field-label">Topics</span><div style="flex:1">${renderList(d.topics, "chip-neutral")}</div></div>`;
       }
-      if (!d.recent_posts?.length && !d.topics?.length) { html += renderList([]); }
+      if (!articles.length) html += renderList([]);
       html += noteHtml(d.note);
       return html;
     }
@@ -1116,16 +1157,19 @@
     }
 
     function renderCompetitorSignals(d) {
-      const hasData = (d.algosec_references?.length || d.tufin_references?.length || d.other_tools?.length);
+      const detected  = d.competitors_detected  || [];
+      const context   = d.competitor_context    || [];
+      const other     = d.other_tools           || [];
+      const hasData   = detected.length || context.length || other.length;
       let html = "";
-      if (d.algosec_references && d.algosec_references.length > 0) {
-        html += `<div class="field-row"><span class="field-label">AlgoSec</span><div style="flex:1">${renderList(d.algosec_references, "chip-danger")}</div></div>`;
+      if (detected.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Competitors</span><div style="flex:1">${renderList(detected, "chip-danger")}</div></div>`;
       }
-      if (d.tufin_references && d.tufin_references.length > 0) {
-        html += `<div class="field-row"><span class="field-label">Tufin</span><div style="flex:1">${renderList(d.tufin_references, "chip-danger")}</div></div>`;
+      if (context.length > 0) {
+        html += `<div class="field-row"><span class="field-label">Context</span><div style="flex:1">${renderList(context)}</div></div>`;
       }
-      if (d.other_tools && d.other_tools.length > 0) {
-        html += `<div class="field-row"><span class="field-label">Other</span><div style="flex:1">${renderList(d.other_tools, "chip-neutral")}</div></div>`;
+      if (other.length > 0 && other[0] !== "N/A") {
+        html += `<div class="field-row"><span class="field-label">Other Tools</span><div style="flex:1">${renderList(other, "chip-neutral")}</div></div>`;
       }
       if (!hasData) html += `<ul class="brief-list"><li class="na">No competitor signals identified</li></ul>`;
       html += noteHtml(d.note);
@@ -1171,8 +1215,9 @@
             : s.status && s.status.includes('blocked') ? 'src-blocked'
             : s.status && (s.status.includes('no result') || s.status.includes('not found') || s.status.includes('no response')) ? 'src-empty'
             : 'src-searched';
+          const hasUrl = s.url && s.url.startsWith('http');
           html += `<div class="source-row">
-            <a class="src-link" href="${s.url}" target="_blank" rel="noopener">${s.label}</a>
+            ${hasUrl ? `<a class="src-link" href="${s.url}" target="_blank" rel="noopener">${s.label}</a>` : `<span class="src-link">${s.label}</span>`}
             <span class="src-status ${statusClass}">${s.status || '—'}</span>
           </div>`;
         });
