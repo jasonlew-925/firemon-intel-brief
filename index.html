@@ -824,7 +824,7 @@
         if (err.name === "AbortError") {
           showError("Request timed out after 2 minutes. The research is still running — please try again in a moment.");
         } else {
-          showError("Network error. Check your connection and try again.");
+          showError("Rendering error: " + err.message + ". Please try again.");
         }
       }
     });
@@ -1164,7 +1164,7 @@
       if (d.topics && Array.isArray(d.topics) && d.topics.length > 0 && d.topics[0] !== "N/A") {
         const realTopics = d.topics.filter(t => t && t !== 'N/A' && t.length > 1);
         if (realTopics.length > 0) {
-          html += `<div class="field-row" style="margin-top:10px"><span class="field-label">Topics</span><div style="flex:1">${renderChips(realTopics, 'chip-neutral')}</div></div>`;
+          html += `<div class="field-row" style="margin-top:10px"><span class="field-label">Topics</span><div style="flex:1">${renderList(realTopics, 'chip-neutral')}</div></div>`;
         }
       }
 
